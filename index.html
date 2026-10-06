@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#080b14">
+  <title data-i18n="title">Archai Hub — إدارة المشاريع وفريق العمل</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%236366f1'/><path d='M30 30h18v40h22' stroke='white' stroke-width='8' fill='none' stroke-linecap='round'/></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="stylesheet" href="src/styles/main.css">
+  <link rel="stylesheet" href="src/styles/components.css">
+  <link rel="stylesheet" href="src/styles/layout.css">
+  <link rel="stylesheet" href="src/styles/views.css">
+  <link rel="stylesheet" href="src/styles/modals.css">
+  <link rel="stylesheet" href="src/styles/theme-light.css">
+</head>
+
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="ambient ambient-c"></div>
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ==================== AUTH SCREEN ==================== -->
+  <section id="auth-screen" class="auth-screen" role="main" aria-label="تسجيل الدخول">
+    <div class="auth-wrapper">
+      <div class="auth-toggles">
+        <button type="button" id="auth-lang-toggle" class="ui-switch lang-switch" title="تغيير اللغة" aria-label="تغيير اللغة">
+          <i class="fa-solid fa-globe" aria-hidden="true"></i><span class="lang-code">EN</span>
+        </button>
+        <button type="button" id="auth-theme-toggle" class="ui-switch" title="تغيير المظهر" aria-label="تغيير المظهر">
+          <i class="fa-solid fa-sun" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="auth-brand">
+        <div class="brand-mark brand-mark-lg" aria-hidden="true"><i class="fa-solid fa-cubes-stacked"></i></div>
+        <h1 class="auth-title">Archai Hub</h1>
+        <p class="auth-subtitle" data-i18n="auth.subtitle">منظومة احترافية لإدارة المشاريع وفريق العمل</p>
+      </div>
+
+      <div class="glass auth-panel">
+        <div class="auth-panel-head">
+          <div class="auth-panel-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <h2 class="auth-panel-title">تسجيل الدخول الآمن</h2>
+            <p class="auth-panel-sub">الوصول متاح للحسابات المصرح لها فقط</p>
+          </div>
+        </div>
+
+        <form id="login-form" class="auth-form" autocomplete="on" novalidate>
+          <div class="field">
+            <label class="label" for="login-email">البريد الإلكتروني</label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-envelope input-icon" aria-hidden="true"></i>
+              <input id="login-email" type="email" required autocomplete="username" class="input input-with-icon" placeholder="name@company.com" aria-describedby="login-email-hint">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="login-password">كلمة المرور</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock input-icon" aria-hidden="true"></i>
+              <input id="login-password" type="password" required autocomplete="current-password" class="input input-with-icon input-with-action" placeholder="••••••••">
+              <button type="button" id="toggle-password" class="input-action" aria-label="إظهار كلمة المرور" aria-pressed="false">
+                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <button id="login-btn" type="submit" class="btn btn-primary btn-block">
+            <span class="login-label">دخول إلى النظام</span>
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          </button>
+          <p id="login-error" class="alert alert-danger hidden" role="alert" aria-live="assertive"></p>
+        </form>
+
+        <div class="auth-footer">
+          <i class="fa-solid fa-lock text-emerald-400" aria-hidden="true"></i>
+          <span>لا يوجد دخول تجريبي أو تبديل صلاحيات من الواجهة.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== APP SHELL ==================== -->
+  <section id="app-shell" class="app-shell hidden">
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" aria-label="القائمة الرئيسية">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-mark" aria-hidden="true"><i class="fa-solid fa-cubes-stacked"></i></div>
+          <div class="brand-text">
+            <div class="brand-title">Archai Hub</div>
+            <div class="brand-subtitle">إدارة الأعمال والمشاريع</div>
+          </div>
+        </div>
+        <button id="close-sidebar" class="btn-icon mobile-only" aria-label="إغلاق القائمة">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="التنقل الرئيسي">
+        <button data-view="dashboard" class="nav-btn active" aria-current="page">
+          <i class="fa-solid fa-chart-pie" aria-hidden="true"></i><span data-i18n="nav.dashboard">الرئيسية</span>
+        </button>
+        <button data-view="projects" class="nav-btn">
+          <i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span data-i18n="nav.projects">المشاريع</span>
+        </button>
+        <button data-view="tasks" class="nav-btn">
+          <i class="fa-solid fa-table-columns" aria-hidden="true"></i><span data-i18n="nav.tasks">لوحة المهام</span>
+        </button>
+        <button data-view="team" id="nav-team" class="nav-btn">
+          <i class="fa-solid fa-users-gear" aria-hidden="true"></i><span data-i18n="nav.team">فريق العمل</span>
+        </button>
+        <button data-view="resources" class="nav-btn">
+          <i class="fa-solid fa-folder-open" aria-hidden="true"></i><span data-i18n="nav.resources">الموارد والملفات</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div id="user-avatar" class="user-avatar" aria-hidden="true">م</div>
+          <div class="user-info">
+            <div id="user-name" class="user-name">...</div>
+            <div id="user-role" class="user-role">...</div>
+          </div>
+          <button id="logout-btn" class="btn-icon" title="تسجيل الخروج" aria-label="تسجيل الخروج">
+            <i class="fa-solid fa-power-off" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="app-main">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="open-sidebar" class="btn-icon mobile-only" aria-label="فتح القائمة">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          </button>
+          <div class="header-title-wrap">
+            <h2 id="page-title" class="header-title">الرئيسية</h2>
+            <p id="page-subtitle" class="header-subtitle desktop-only">نظرة شاملة على النظام</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="header-search desktop-only">
+            <i class="fa-solid fa-magnifying-glass input-icon" aria-hidden="true"></i>
+            <input id="global-search" class="input input-with-icon" placeholder="بحث في النظام..." aria-label="بحث في النظام">
+          </div>
+          <button id="refresh-btn" class="btn-icon" title="تحديث" aria-label="تحديث البيانات"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></button>
+          <button id="lang-toggle" class="ui-switch lang-switch" title="تغيير اللغة" aria-label="تغيير اللغة">
+            <i class="fa-solid fa-globe" aria-hidden="true"></i><span class="lang-code">EN</span>
+          </button>
+          <button id="theme-toggle" class="ui-switch" title="تغيير المظهر" aria-label="تغيير المظهر">
+            <i class="fa-solid fa-sun" aria-hidden="true"></i>
+          </button>
+          <div id="connection-badge" class="badge badge-emerald desktop-only" aria-live="polite">
+            <span class="dot dot-emerald" aria-hidden="true"></span> متصل
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <!-- Dashboard -->
+        <section id="view-dashboard" class="view-section active">
+          <div class="view-head">
+            <div>
+              <div class="eyebrow" data-i18n="dashboard.overview">OVERVIEW</div>
+              <h3 class="view-title" data-i18n="dashboard.welcome">مرحبًا بك في مساحة العمل</h3>
+              <p class="view-desc" data-i18n="dashboard.desc">تابع الأداء والمهام والمشاريع من مكان واحد.</p>
+            </div>
+            <div id="admin-actions" class="view-actions hidden">
+              <button class="btn btn-primary" data-modal-open="team-modal">
+                <i class="fa-solid fa-user-plus"></i> <span data-i18n="dashboard.newEmployee">موظف جديد</span>
+              </button>
+              <button class="btn btn-secondary" data-modal-open="project-modal">
+                <i class="fa-solid fa-folder-plus"></i> <span data-i18n="dashboard.newProject">مشروع جديد</span>
+              </button>
+              <button class="btn btn-secondary" data-modal-open="task-modal">
+                <i class="fa-solid fa-plus"></i> <span data-i18n="dashboard.newTask">مهمة جديدة</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-indigo"><i class="fa-solid fa-diagram-project"></i></div>
+              <div><p class="stat-label">المشاريع</p><p id="stat-projects" class="stat-value">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-list-check"></i></div>
+              <div><p class="stat-label">كل المهام</p><p id="stat-tasks" class="stat-value">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-spinner"></i></div>
+              <div><p class="stat-label">قيد التنفيذ</p><p id="stat-progress" class="stat-value">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-icon-emerald"><i class="fa-solid fa-circle-check"></i></div>
+              <div><p class="stat-label">مكتملة</p><p id="stat-completed" class="stat-value">0</p></div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="glass card-pad rounded-3xl">
+              <div class="card-head">
+                <div><h4 class="card-title">تقدم المشاريع</h4><p class="card-sub">نسبة الإنجاز محسوبة من حالة المهام</p></div>
+                <button data-view-jump="projects" class="link">عرض الكل</button>
+              </div>
+              <div id="dashboard-projects" class="dash-projects"></div>
+            </div>
+            <div class="glass card-pad rounded-3xl">
+              <div class="card-head">
+                <div><h4 class="card-title">ملخص الأداء</h4><p class="card-sub">نسبة المهام المكتملة</p></div>
+                <i class="fa-solid fa-chart-line text-indigo-400"></i>
+              </div>
+              <div class="ring-wrap">
+                <div id="completion-ring" class="ring">
+                  <div class="ring-inner">
+                    <span id="completion-rate" class="ring-value">0%</span>
+                    <span class="ring-label">إنجاز</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ring-stats">
+                <div><b id="dash-todo" class="text-amber-400">0</b><span>انتظار</span></div>
+                <div><b id="dash-progress" class="text-cyan-400">0</b><span>عمل</span></div>
+                <div><b id="dash-done" class="text-emerald-400">0</b><span>مكتمل</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Projects -->
+        <section id="view-projects" class="view-section">
+          <div class="view-head">
+            <div><h3 class="view-title" data-i18n="nav.projects">المشاريع</h3><p class="view-desc" data-i18n="projects.desc">إدارة المشاريع ومتابعة نسب الإنجاز.</p></div>
+            <button class="btn btn-primary admin-only hidden" data-modal-open="project-modal">
+              <i class="fa-solid fa-plus"></i> <span data-i18n="projects.new">مشروع جديد</span>
+            </button>
+          </div>
+          <div id="projects-grid" class="projects-grid"></div>
+        </section>
+
+        <!-- Tasks -->
+        <section id="view-tasks" class="view-section">
+          <div class="view-head">
+            <div><h3 class="view-title" data-i18n="nav.tasks">لوحة المهام</h3><p class="view-desc" data-i18n="tasks.desc">متابعة حالات المهام بصريًا.</p></div>
+            <button class="btn btn-primary admin-only hidden" data-modal-open="task-modal">
+              <i class="fa-solid fa-plus"></i> <span data-i18n="tasks.new">مهمة جديدة</span>
+            </button>
+          </div>
+          <div class="kanban">
+            <div class="kanban-col">
+              <div class="kanban-head">
+                <h4 class="text-amber-400"><i class="fa-solid fa-clock"></i> <span data-i18n="tasks.todo">قيد الانتظار</span></h4>
+                <span id="count-todo" class="badge badge-amber">0</span>
+              </div>
+              <div id="kanban-todo" class="kanban-list"></div>
+            </div>
+            <div class="kanban-col">
+              <div class="kanban-head">
+                <h4 class="text-cyan-400"><i class="fa-solid fa-spinner"></i> <span data-i18n="tasks.inProgress">قيد التنفيذ</span></h4>
+                <span id="count-progress" class="badge badge-cyan">0</span>
+              </div>
+              <div id="kanban-progress" class="kanban-list"></div>
+            </div>
+            <div class="kanban-col">
+              <div class="kanban-head">
+                <h4 class="text-emerald-400"><i class="fa-solid fa-check"></i> <span data-i18n="tasks.completed">مكتملة</span></h4>
+                <span id="count-completed" class="badge badge-emerald">0</span>
+              </div>
+              <div id="kanban-completed" class="kanban-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Team -->
+        <section id="view-team" class="view-section">
+          <div class="view-head">
+            <div><h3 class="view-title" data-i18n="nav.team">فريق العمل</h3><p class="view-desc" data-i18n="team.desc">إدارة أعضاء الفريق والأدوار والصلاحيات.</p></div>
+            <button class="btn btn-primary admin-only hidden" data-modal-open="team-modal">
+              <i class="fa-solid fa-user-plus"></i> <span data-i18n="team.new">إضافة عضو</span>
+            </button>
+          </div>
+          <div class="glass card-pad rounded-3xl team-toolbar">
+            <div class="team-search">
+              <i class="fa-solid fa-magnifying-glass input-icon"></i>
+              <input id="team-search" class="input input-with-icon" placeholder="بحث بالاسم أو البريد..." data-i18n-placeholder="team.search">
+            </div>
+            <select id="team-role-filter" class="input">
+              <option value="" data-i18n="team.allRoles">كل الأدوار</option>
+              <option value="admin" data-i18n="team.admin">مدير</option>
+              <option value="user" data-i18n="team.user">موظف</option>
+            </select>
+          </div>
+          <div id="team-grid" class="team-grid"></div>
+        </section>
+
+        <!-- Resources -->
+        <section id="view-resources" class="view-section">
+          <div class="resource-head">
+            <div>
+              <div class="eyebrow"><i class="fa-solid fa-folder-tree"></i> <span data-i18n="resources.library">مكتبة العمل</span></div>
+              <h3 class="view-title" data-i18n="nav.resources">الموارد والملفات</h3>
+              <p class="view-desc" data-i18n="resources.desc">كل الروابط والملاحظات وملفات PDF مرتبة حسب المشروع والمهمة.</p>
+            </div>
+            <div class="view-actions">
+              <button class="btn btn-cyan admin-only hidden" data-modal-open="resource-modal">
+                <i class="fa-solid fa-link"></i> <span data-i18n="resources.new">إضافة مورد</span>
+              </button>
+              <button class="btn btn-primary admin-only hidden" data-modal-open="file-upload-modal">
+                <i class="fa-solid fa-cloud-arrow-up"></i> <span data-i18n="resources.upload">رفع ملف PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="resource-stats">
+            <div><span class="stat-icon stat-icon-cyan"><i class="fa-solid fa-link"></i></span>
+              <div><b id="resource-link-count">0</b><small data-i18n="resources.links">روابط ومراجع</small></div></div>
+            <div><span class="stat-icon stat-icon-amber"><i class="fa-regular fa-note-sticky"></i></span>
+              <div><b id="resource-note-count">0</b><small data-i18n="resources.notes">ملاحظات</small></div></div>
+            <div><span class="stat-icon stat-icon-rose"><i class="fa-regular fa-file-pdf"></i></span>
+              <div><b id="resource-file-count">0</b><small data-i18n="resources.files">ملفات PDF</small></div></div>
+            <div><span class="stat-icon stat-icon-violet"><i class="fa-solid fa-diagram-project"></i></span>
+              <div><b id="resource-project-count">0</b><small data-i18n="resources.projects">مشاريع بها موارد</small></div></div>
+          </div>
+
+          <div class="resource-layout">
+            <section class="glass card-pad rounded-3xl resource-section">
+              <div class="card-head">
+                <div>
+                  <span class="eyebrow text-cyan-400" data-i18n="resources.referenceCenter">REFERENCE CENTER</span>
+                  <h4 class="card-title" data-i18n="resources.linksNotes">الروابط والملاحظات</h4>
+                  <p class="card-sub" data-i18n="resources.refsDesc">المراجع التي يستخدمها الفريق أثناء العمل.</p>
+                </div>
+                <span id="resource-content-count" class="badge badge-indigo">0</span>
+              </div>
+              <div id="resources-grid" class="resource-content-grid"></div>
+            </section>
+
+            <section class="glass card-pad rounded-3xl resource-section">
+              <div class="card-head">
+                <div>
+                  <span class="eyebrow text-rose-400" data-i18n="resources.documentLibrary">DOCUMENT LIBRARY</span>
+                  <h4 class="card-title" data-i18n="resources.projectFiles">ملفات المشاريع والمهام</h4>
+                  <p class="card-sub" data-i18n="resources.filesDesc">كل PDF موضح معه المشروع والمهمة.</p>
+                </div>
+                <span id="resource-library-count" class="badge badge-rose">0</span>
+              </div>
+              <div id="resource-file-library" class="resource-library"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <!-- ==================== MODALS ==================== -->
+  <!-- Team create -->
+  <div id="team-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="team-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div><h3 id="team-modal-title" class="modal-title">إضافة عضو لفريق العمل</h3><p class="modal-subtitle">إنشاء حساب عبر Edge Function آمنة.</p></div>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="team-form" class="modal-body form-stack" novalidate>
+        <div class="field"><label class="label" for="team-name">الاسم الكامل *</label><input id="team-name" class="input" required autocomplete="name"></div>
+        <div class="field"><label class="label" for="team-email">البريد الإلكتروني *</label><input id="team-email" type="email" class="input" required autocomplete="off"></div>
+        <div class="field"><label class="label" for="team-password">كلمة المرور *</label><input id="team-password" type="password" class="input" required minlength="8" autocomplete="new-password"></div>
+        <div class="field"><label class="label" for="team-role">الدور *</label>
+          <select id="team-role" class="input">
+            <option value="user">موظف / User</option>
+            <option value="admin">مدير / Admin</option>
+          </select>
+        </div>
+        <div class="alert alert-warning">الحساب يُنشأ ويُعدّل ويُحذف عبر Edge Function آمنة.</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Team edit -->
+  <div id="edit-team-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="edit-team-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="edit-team-modal-title" class="modal-title">تعديل بيانات العضو</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="edit-team-form" class="modal-body form-stack" novalidate>
+        <input id="edit-team-id" type="hidden">
+        <div class="field"><label class="label" for="edit-team-name">الاسم الكامل *</label><input id="edit-team-name" class="input" required autocomplete="name"></div>
+        <div class="field"><label class="label" for="edit-team-email">البريد الإلكتروني *</label><input id="edit-team-email" type="email" class="input" required autocomplete="off"></div>
+        <div class="field"><label class="label" for="edit-team-password">كلمة مرور جديدة (اختياري)</label><input id="edit-team-password" type="password" class="input" minlength="8" autocomplete="new-password"></div>
+        <div class="field"><label class="label" for="edit-team-role">الدور *</label>
+          <select id="edit-team-role" class="input">
+            <option value="user">موظف / User</option>
+            <option value="admin">مدير / Admin</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project create -->
+  <div id="project-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="project-modal-title" class="modal-title">إنشاء مشروع جديد</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="project-form" class="modal-body form-stack" novalidate>
+        <div class="field"><label class="label" for="project-title">اسم المشروع *</label><input id="project-title" class="input" required></div>
+        <div class="field"><label class="label" for="project-description">وصف ومواصفات المشروع</label><textarea id="project-description" rows="4" class="input"></textarea></div>
+        <div class="form-row">
+          <div class="field"><label class="label" for="project-status">الحالة</label>
+            <select id="project-status" class="input">
+              <option value="planning">تخطيط</option>
+              <option value="in_progress">قيد التنفيذ</option>
+              <option value="paused">متوقف مؤقتًا</option>
+              <option value="completed">مكتمل</option>
+            </select>
+          </div>
+          <div class="field"><label class="label" for="project-priority">الأولوية</label>
+            <select id="project-priority" class="input">
+              <option value="low">منخفضة</option>
+              <option value="medium" selected>متوسطة</option>
+              <option value="high">عالية</option>
+              <option value="urgent">عاجلة</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label class="label" for="project-start">تاريخ البداية</label><input id="project-start" type="date" class="input"></div>
+          <div class="field"><label class="label" for="project-due">موعد التسليم</label><input id="project-due" type="date" class="input"></div>
+        </div>
+        <div class="field"><label class="label" for="project-file">ملف Documentation PDF</label><input id="project-file" type="file" accept="application/pdf,.pdf" class="input"></div>
+        <div class="field"><label class="label">أعضاء المشروع</label><div id="project-members-picker" class="member-picker"></div></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء المشروع</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project edit -->
+  <div id="edit-project-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="edit-project-modal-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="edit-project-modal-title" class="modal-title">تعديل بيانات المشروع</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="edit-project-form" class="modal-body form-stack" novalidate>
+        <input id="edit-project-id" type="hidden">
+        <div class="field"><label class="label" for="edit-project-title">اسم المشروع *</label><input id="edit-project-title" class="input" required></div>
+        <div class="field"><label class="label" for="edit-project-description">الوصف</label><textarea id="edit-project-description" rows="4" class="input"></textarea></div>
+        <div class="form-row-3">
+          <div class="field"><label class="label" for="edit-project-status">الحالة</label>
+            <select id="edit-project-status" class="input">
+              <option value="planning">تخطيط</option>
+              <option value="in_progress">قيد التنفيذ</option>
+              <option value="paused">متوقف مؤقتًا</option>
+              <option value="completed">مكتمل</option>
+            </select>
+          </div>
+          <div class="field"><label class="label" for="edit-project-priority">الأولوية</label>
+            <select id="edit-project-priority" class="input">
+              <option value="low">منخفضة</option>
+              <option value="medium">متوسطة</option>
+              <option value="high">عالية</option>
+              <option value="urgent">عاجلة</option>
+            </select>
+          </div>
+          <div class="field"><label class="label" for="edit-project-progress">نسبة الإنجاز</label><input id="edit-project-progress" type="number" min="0" max="100" class="input"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label class="label" for="edit-project-start">تاريخ البداية</label><input id="edit-project-start" type="date" class="input"></div>
+          <div class="field"><label class="label" for="edit-project-due">موعد التسليم</label><input id="edit-project-due" type="date" class="input"></div>
+        </div>
+        <div class="field"><label class="label">أعضاء المشروع</label><div id="edit-project-members-picker" class="member-picker"></div></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Task create -->
+  <div id="task-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="task-modal-title" class="modal-title">إضافة مهمة جديدة</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="task-form" class="modal-body form-stack" novalidate>
+        <div class="field"><label class="label" for="task-type">نوع المهمة</label>
+          <select id="task-type" class="input">
+            <option value="project">مهمة داخل مشروع</option>
+            <option value="general">مهمة عامة بدون مشروع</option>
+          </select>
+        </div>
+        <div id="task-project-wrap" class="field"><label class="label" for="task-project">المشروع</label><select id="task-project" class="input"></select></div>
+        <div class="field"><label class="label" for="task-title">عنوان المهمة *</label><input id="task-title" class="input" required></div>
+        <div class="field"><label class="label" for="task-description">التفاصيل</label><textarea id="task-description" rows="3" class="input"></textarea></div>
+        <div class="form-row">
+          <div class="field"><label class="label" for="task-assignee">الموظف المسؤول *</label><select id="task-assignee" class="input" required></select></div>
+          <div class="field"><label class="label" for="task-priority">الأولوية</label>
+            <select id="task-priority" class="input">
+              <option value="low">منخفضة</option>
+              <option value="medium" selected>متوسطة</option>
+              <option value="high">عالية</option>
+              <option value="urgent">عاجلة</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label class="label" for="task-due">تاريخ الإنجاز</label><input id="task-due" type="date" class="input"></div>
+        <div class="field"><label class="label" for="task-files">ملفات PDF للمهمة</label><input id="task-files" type="file" accept="application/pdf,.pdf" multiple class="input"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">إنشاء المهمة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Task edit -->
+  <div id="edit-task-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="edit-task-modal-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 id="edit-task-modal-title" class="modal-title">تعديل بيانات المهمة</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="edit-task-form" class="modal-body form-stack" novalidate>
+        <input id="edit-task-id" type="hidden">
+        <div class="field"><label class="label" for="edit-task-type">نوع المهمة</label>
+          <select id="edit-task-type" class="input">
+            <option value="project">مهمة داخل مشروع</option>
+            <option value="general">مهمة عامة</option>
+          </select>
+        </div>
+        <div id="edit-task-project-wrap" class="field"><label class="label" for="edit-task-project">المشروع</label><select id="edit-task-project" class="input"></select></div>
+        <div class="field"><label class="label" for="edit-task-title">عنوان المهمة *</label><input id="edit-task-title" class="input" required></div>
+        <div class="field"><label class="label" for="edit-task-description">التفاصيل</label><textarea id="edit-task-description" rows="4" class="input"></textarea></div>
+        <div class="form-row-4">
+          <div class="field"><label class="label" for="edit-task-assignee">المسؤول *</label><select id="edit-task-assignee" class="input" required></select></div>
+          <div class="field"><label class="label" for="edit-task-status">الحالة</label>
+            <select id="edit-task-status" class="input">
+              <option value="todo">قيد الانتظار</option>
+              <option value="in_progress">قيد التنفيذ</option>
+              <option value="completed">مكتملة</option>
+            </select>
+          </div>
+          <div class="field"><label class="label" for="edit-task-priority">الأولوية</label>
+            <select id="edit-task-priority" class="input">
+              <option value="low">منخفضة</option>
+              <option value="medium">متوسطة</option>
+              <option value="high">عالية</option>
+              <option value="urgent">عاجلة</option>
+            </select>
+          </div>
+          <div class="field"><label class="label" for="edit-task-progress">التقدم %</label><input id="edit-task-progress" type="number" min="0" max="100" class="input"></div>
+        </div>
+        <div class="field"><label class="label" for="edit-task-due">تاريخ التسليم</label><input id="edit-task-due" type="date" class="input"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resource -->
+  <div id="resource-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="resource-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="resource-modal-title" class="modal-title">إضافة مورد</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="resource-form" class="modal-body form-stack" novalidate>
+        <div class="field"><label class="label" for="resource-project">المشروع *</label><select id="resource-project" class="input" required></select></div>
+        <div class="field"><label class="label" for="resource-type">النوع</label>
+          <select id="resource-type" class="input">
+            <option value="link">رابط</option>
+            <option value="note">ملاحظة</option>
+            <option value="file">ملف / رابط ملف</option>
+          </select>
+        </div>
+        <div class="field"><label class="label" for="resource-title">العنوان *</label><input id="resource-title" class="input" required></div>
+        <div class="field"><label class="label" for="resource-content">المحتوى أو الرابط *</label><textarea id="resource-content" rows="4" class="input" required></textarea></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-cyan">حفظ المورد</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- File upload -->
+  <div id="file-upload-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="file-upload-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="file-upload-modal-title" class="modal-title">رفع ملف PDF</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="file-upload-form" class="modal-body form-stack" novalidate>
+        <div class="field"><label class="label" for="file-target-type">مكان الملف *</label>
+          <select id="file-target-type" class="input">
+            <option value="project">ملف مشروع</option>
+            <option value="task">ملف مهمة</option>
+          </select>
+        </div>
+        <div class="field"><label class="label" for="file-target-project">المشروع *</label><select id="file-target-project" class="input"></select></div>
+        <div id="file-target-task-wrap" class="field hidden"><label class="label" for="file-target-task">المهمة *</label><select id="file-target-task" class="input"></select></div>
+        <div class="field"><label class="label" for="file-display-name">اسم العرض (اختياري)</label><input id="file-display-name" class="input" placeholder="مثال: المتطلبات النهائية.pdf"></div>
+        <div class="upload-dropzone">
+          <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+          <div><b>اختر ملف PDF</b><small>PDF فقط • الحد الأقصى 20MB</small></div>
+          <input id="resource-file-input" type="file" accept="application/pdf,.pdf" class="input">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">رفع الملف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- File edit -->
+  <div id="edit-file-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="edit-file-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="edit-file-modal-title" class="modal-title">تعديل بيانات الملف</h3>
+        <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <form id="edit-file-form" class="modal-body form-stack" novalidate>
+        <input id="edit-file-id" type="hidden">
+        <div class="field"><label class="label" for="edit-file-name">اسم الملف *</label><input id="edit-file-name" class="input" required></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project details workspace -->
+  <div id="project-details-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="project-details-modal-title">
+    <div class="workspace">
+      <header class="workspace-header">
+        <div class="workspace-head-top">
+          <div class="workspace-title-wrap">
+            <div class="workspace-mark" aria-hidden="true"><i class="fa-solid fa-diagram-project"></i></div>
+            <div class="min-w-0">
+              <div class="flex gap-2 mb-2">
+                <span id="detail-project-status" class="badge"></span>
+                <span id="detail-project-priority" class="badge"></span>
+              </div>
+              <h2 id="detail-project-title" class="workspace-title">تفاصيل المشروع</h2>
+              <p id="detail-project-subtitle" class="workspace-subtitle"></p>
+            </div>
+          </div>
+          <div class="workspace-actions">
+            <div id="detail-project-admin-actions" class="admin-inline hidden"></div>
+            <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="workspace-meta">
+          <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> <span id="detail-project-dates"></span></span>
+          <span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> التقدم <b id="detail-project-progress-label">0%</b></span>
+        </div>
+        <div id="project-detail-metrics" class="workspace-metrics"></div>
+        <div class="progress-strip"><div id="detail-project-progress" class="progress-fill" style="width:0%"></div></div>
+      </header>
+
+      <nav class="workspace-tabs" aria-label="أقسام المشروع">
+        <button class="workspace-tab active" data-project-tab="overview" aria-selected="true"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>نظرة عامة</span></button>
+        <button class="workspace-tab" data-project-tab="tasks" aria-selected="false"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>المهام</span><b id="detail-task-count-tab">0</b></button>
+        <button class="workspace-tab" data-project-tab="files" aria-selected="false"><i class="fa-regular fa-folder-open" aria-hidden="true"></i><span>الملفات</span><b id="detail-file-count-tab">0</b></button>
+        <button class="workspace-tab" data-project-tab="team" aria-selected="false"><i class="fa-solid fa-users" aria-hidden="true"></i><span>الفريق</span><b id="detail-member-count-tab">0</b></button>
+        <button class="workspace-tab" data-project-tab="activity" aria-selected="false"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>النشاط</span><b id="detail-activity-count-tab">0</b></button>
+      </nav>
+
+      <div class="workspace-body scrollbar">
+        <section class="project-panel active" data-project-panel="overview" role="tabpanel" aria-labelledby="overview-tab">
+          <div class="project-overview-grid">
+            <div class="glass card-pad rounded-3xl">
+              <div class="section-head">
+                <div class="section-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></div>
+                <div><h3>وصف ومواصفات المشروع</h3><p>المعلومات الأساسية والنطاق الحالي</p></div>
+              </div>
+              <div id="detail-project-description" class="overview-desc"></div>
+              <div class="progress-panel">
+                <div class="progress-head"><span>التقدم الإجمالي</span><b id="overview-progress-label">0%</b></div>
+                <div class="progress-track"><div id="overview-progress" class="progress-fill" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="glass card-pad rounded-3xl">
+              <div class="section-head">
+                <div class="section-icon section-icon-violet" aria-hidden="true"><i class="fa-solid fa-chart-pie"></i></div>
+                <div><h3>ملخص الأداء</h3><p>مؤشرات سريعة</p></div>
+              </div>
+              <div id="detail-project-summary" class="summary-grid"></div>
+            </div>
+          </div>
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-cyan" aria-hidden="true"><i class="fa-solid fa-bolt"></i></div>
+              <div><h3>الوصول السريع</h3><p>انتقل مباشرة إلى الجزء المطلوب</p></div>
+            </div>
+            <div class="quick-actions">
+              <button data-project-jump="tasks"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span><b>المهام</b><small>راجع التنفيذ والمسؤوليات</small></span><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+              <button data-project-jump="files"><i class="fa-regular fa-file-pdf" aria-hidden="true"></i><span><b>مكتبة الملفات</b><small>المستندات وملفات المهام</small></span><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+              <button data-project-jump="activity"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span><b>النشاط</b><small>آخر التحديثات والتعليقات</small></span><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-panel" data-project-panel="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-cyan" aria-hidden="true"><i class="fa-solid fa-list-check"></i></div>
+              <div><h3>مهام المشروع</h3><p>كل المهام في مساحة واضحة</p></div>
+              <span id="detail-task-count" class="badge badge-indigo">0</span>
+            </div>
+            <div id="detail-project-tasks" class="workspace-list"></div>
+          </div>
+        </section>
+
+        <section class="project-panel" data-project-panel="files" role="tabpanel" aria-labelledby="files-tab">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-rose" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></div>
+              <div><h3>مكتبة ملفات المشروع</h3><p>مستندات المشروع وملفات المهام</p></div>
+              <div class="section-actions">
+                <span id="detail-file-count" class="badge badge-rose">0</span>
+                <button class="btn btn-sm btn-secondary admin-only hidden" data-project-upload="1">
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i> رفع ملف
+                </button>
+              </div>
+            </div>
+            <div id="detail-project-files" class="project-file-grid"></div>
+          </div>
+        </section>
+
+        <section class="project-panel" data-project-panel="team" role="tabpanel" aria-labelledby="team-tab">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-violet" aria-hidden="true"><i class="fa-solid fa-users"></i></div>
+              <div><h3>فريق المشروع</h3><p>الأعضاء وتوزيع العمل</p></div>
+              <span id="detail-member-count" class="badge badge-indigo">0</span>
+            </div>
+            <div id="detail-project-members" class="project-team-grid"></div>
+          </div>
+        </section>
+
+        <section class="project-panel" data-project-panel="activity" role="tabpanel" aria-labelledby="activity-tab">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-violet" aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div><h3>النشاط والتحديثات</h3><p>سجل زمني للتغييرات والتعليقات</p></div>
+              <span id="detail-activity-count" class="badge badge-cyan">0</span>
+            </div>
+            <div id="detail-project-activity" class="timeline"></div>
+            <div class="comment-composer">
+              <div id="detail-comment-avatar" class="composer-avatar" aria-hidden="true">م</div>
+              <div class="composer-content">
+                <textarea id="detail-comment-input" rows="3" class="input" placeholder="اكتب تحديثًا أو تعليقًا..."></textarea>
+                <div class="composer-footer">
+                  <span>سيظهر التعليق للأعضاء المصرح لهم.</span>
+                  <button id="detail-comment-submit" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> إضافة تعليق
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task details -->
+  <div id="task-details-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="task-details-modal-title">
+    <div class="workspace">
+      <header class="workspace-header">
+        <div class="workspace-head-top">
+          <div class="workspace-title-wrap">
+            <div class="workspace-mark workspace-mark-cyan" aria-hidden="true"><i class="fa-solid fa-list-check"></i></div>
+            <div class="min-w-0">
+              <div class="flex gap-2 mb-2">
+                <span id="detail-task-status" class="badge"></span>
+                <span id="detail-task-priority" class="badge"></span>
+              </div>
+              <h2 id="detail-task-title" class="workspace-title">تفاصيل المهمة</h2>
+              <p id="detail-task-project" class="workspace-subtitle"></p>
+            </div>
+          </div>
+          <div class="workspace-actions">
+            <div id="detail-task-admin-actions" class="admin-inline hidden"></div>
+            <button class="modal-close" data-modal-close aria-label="إغلاق"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="task-progress-header">
+          <div class="progress-head"><span>تقدم المهمة</span><b id="detail-task-progress-label">0%</b></div>
+          <div class="progress-track"><div id="detail-task-progress" class="progress-fill" style="width:0%"></div></div>
+        </div>
+      </header>
+
+      <div class="workspace-body scrollbar task-body">
+        <main class="workspace-main">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon" aria-hidden="true"><i class="fa-solid fa-align-right"></i></div>
+              <div><h3>تفاصيل المهمة</h3><p>الوصف والبيانات الأساسية</p></div>
+            </div>
+            <div id="detail-task-description" class="task-desc"></div>
+            <div id="detail-task-meta" class="task-meta-grid"></div>
+          </div>
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div class="section-icon section-icon-violet" aria-hidden="true"><i class="fa-solid fa-comments"></i></div>
+              <div><h3>النشاط والتعليقات</h3><p>تحديثات العمل المرتبطة</p></div>
+            </div>
+            <div id="detail-task-activity" class="timeline"></div>
+            <div class="comment-composer">
+              <div class="composer-avatar" aria-hidden="true"><i class="fa-regular fa-comment"></i></div>
+              <div class="composer-content">
+                <textarea id="detail-task-comment-input" rows="3" class="input" placeholder="اكتب تحديثًا عن المهمة..."></textarea>
+                <div class="composer-footer">
+                  <span>أضف ملاحظة واضحة للفريق.</span>
+                  <button id="detail-task-comment-submit" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> إضافة تحديث
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <aside class="workspace-side">
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div><h3>ملفات المهمة</h3><p>PDF والمستندات المرتبطة</p></div>
+            </div>
+            <div id="detail-task-files" class="workspace-list"></div>
+          </div>
+          <div class="glass card-pad rounded-3xl">
+            <div class="section-head">
+              <div><h3>الإجراءات</h3><p>تحديث حالة المهمة</p></div>
+            </div>
+            <div id="detail-task-actions" class="workspace-list"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF viewer -->
+  <div id="pdf-viewer-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="pdf-viewer-title">
+    <div class="pdf-viewer">
+      <header class="pdf-toolbar">
+        <div class="pdf-file-info">
+          <div class="pdf-toolbar-icon" aria-hidden="true"><i class="fa-regular fa-file-pdf"></i></div>
+          <div class="min-w-0">
+            <h3 id="pdf-viewer-title">PDF</h3>
+            <p id="pdf-viewer-meta"></p>
+          </div>
+        </div>
+        <div class="pdf-toolbar-actions">
+          <a id="pdf-viewer-external" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span class="desktop-only">فتح خارجي</span>
+          </a>
+          <button class="btn btn-secondary btn-sm" data-modal-close aria-label="إغلاق">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i><span class="desktop-only">إغلاق</span>
+          </button>
+        </div>
+      </header>
+      <div class="pdf-stage">
+        <div id="pdf-viewer-loading" class="pdf-loading" aria-live="polite">
+          <i class="fa-solid fa-circle-notch spin" aria-hidden="true"></i>
+          <span>جاري تجهيز المعاينة...</span>
+        </div>
+        <iframe id="pdf-viewer-frame" title="PDF Viewer" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/js/app.js"></script>
+</body>
+</html>

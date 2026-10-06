@@ -1,0 +1,78 @@
+/* ============================================================
+   Light theme overrides
+   ============================================================ */
+html.light body { background: var(--color-bg); }
+
+html.light .glass {
+  background: rgba(255,255,255,.88);
+  border-color: var(--color-border);
+}
+
+html.light .app-header,
+html.light .sidebar {
+  background: rgba(255,255,255,.95);
+}
+
+html.light .sidebar { border-color: var(--color-border); }
+
+html.light .text-white { color: var(--color-text); }
+html.light .text-slate-300 { color: var(--color-text-muted); }
+html.light .text-slate-400 { color: var(--color-text-soft); }
+html.light .text-slate-500 { color: var(--color-text-soft); }
+html.light .text-slate-600 { color: var(--color-text-muted); }
+
+html.light .overview-desc,
+html.light .task-desc {
+  background: var(--color-bg-3);
+}
+
+html.light .detail-task-row,
+html.light .detail-project-file,
+html.light .member-mini,
+html.light .metric-box,
+html.light .summary-grid > div {
+  background: var(--color-surface);
+}
+
+html.light .modal-dialog { background: var(--color-surface); }
+html.light .workspace { background: var(--color-surface); }
+html.light .workspace-body { background: var(--color-bg-3); }
+html.light .workspace-tabs { background: var(--color-bg-3); }
+html.light .workspace-header {
+  background: linear-gradient(180deg, var(--color-surface), var(--color-bg-3));
+}
+
+html.light .ambient { opacity: .08; }
+
+html.light .stat-card { background: var(--color-surface); border-color: var(--color-border); }
+html.light .project-card { background: var(--color-surface); border-color: var(--color-border); }
+html.light .task-card { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .team-card { background: var(--color-surface); border-color: var(--color-border); }
+html.light .resource-item { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .file-group { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .file-card { background: var(--color-surface); border-color: var(--color-border); }
+html.light .dash-project { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .ring-inner { background: var(--color-bg-3); }
+html.light .ring-stats > div { background: var(--color-bg-3); }
+html.light .kanban-col { background: var(--color-surface); border-color: var(--color-border); }
+html.light .team-card-stats > div { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .resource-stats > div { background: var(--color-surface); border-color: var(--color-border); }
+html.light .file-card-btn { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .resource-item-preview { background: var(--color-bg); border-color: var(--color-border); }
+html.light .overview-desc { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .progress-panel { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .summary-grid > div { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .quick-actions > button { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .detail-task-row { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .detail-project-file { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .member-mini { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .timeline::before { background: var(--color-border); }
+html.light .timeline-dot { border-color: var(--color-surface); }
+html.light .comment-composer { background: var(--color-bg-3); border-color: rgba(99,102,241,.12); }
+html.light .composer-avatar { background: rgba(99,102,241,.11); border-color: rgba(99,102,241,.18); }
+html.light .task-desc { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .task-meta-grid > div { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .pdf-viewer { background: var(--color-surface); border-color: var(--color-border); }
+html.light .pdf-toolbar { background: var(--color-bg-3); border-color: var(--color-border); }
+html.light .pdf-stage { background: var(--color-bg); }
+html.light .pdf-loading { background: rgba(15,23,42,.78); }

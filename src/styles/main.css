@@ -1,0 +1,252 @@
+/* ============================================================
+   Archai Hub — Design Tokens & Base Styles
+   ============================================================ */
+:root {
+  /* Brand Colors */
+  --brand-500: #6366f1;
+  --violet-500: #8b5cf6;
+  --cyan-500: #06b6d4;
+  --emerald-500: #10b981;
+  --amber-500: #f59e0b;
+  --rose-500: #f43f5e;
+
+  /* Dark theme (default) */
+  --color-bg: #070a12;
+  --color-bg-2: #0d1422;
+  --color-bg-3: #111a2b;
+  --color-border: #223047;
+  --color-text: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-soft: #64748b;
+  --color-input: #0b1220;
+  --color-surface: #0d1422;
+  --color-surface-2: #111a2b;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Border Radius */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Shadows */
+  --shadow-lg: 0 20px 40px rgba(0,0,0,.3);
+  --shadow-xl: 0 35px 100px rgba(0,0,0,.5);
+
+  /* Z-index */
+  --z-base: 1;
+  --z-sticky: 10;
+  --z-sidebar: 20;
+  --z-modal: 100;
+  --z-toast: 200;
+
+  /* Layout */
+  --sidebar-width: 285px;
+  --header-height: 80px;
+  --content-max: 1400px;
+}
+
+/* Light theme */
+html.light {
+  --color-bg: #f4f7fb;
+  --color-bg-2: #ffffff;
+  --color-bg-3: #f8fafc;
+  --color-border: #dbe3ee;
+  --color-text: #172033;
+  --color-text-muted: #64748b;
+  --color-text-soft: #94a3b8;
+  --color-input: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8fafc;
+}
+
+/* ============================================================
+   Base Reset
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+  transition: background-color .22s, color .22s;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+img, svg { max-width: 100%; height: auto; display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+a { color: inherit; text-decoration: none; }
+
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   Typography Scale
+   ============================================================ */
+:root {
+  /* Font sizes */
+  --text-xs: 0.65rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-2xl: 1.25rem;
+  --text-3xl: 1.5rem;
+  --text-4xl: 1.875rem;
+  
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-black: 900;
+  
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+}
+
+/* ============================================================
+   Utility Classes
+   ============================================================ */
+.hidden { display: none !important; }
+.min-w-0 { min-width: 0; }
+.text-center { text-align: center; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.break-words { overflow-wrap: break-word; word-break: break-word; }
+
+/* Typography utilities */
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-lg { font-size: var(--text-lg); }
+.text-xl { font-size: var(--text-xl); }
+.text-2xl { font-size: var(--text-2xl); }
+.text-3xl { font-size: var(--text-3xl); }
+.text-4xl { font-size: var(--text-4xl); }
+.font-normal { font-weight: var(--font-normal); }
+.font-medium { font-weight: var(--font-medium); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-bold { font-weight: var(--font-bold); }
+.font-black { font-weight: var(--font-black); }
+.leading-tight { line-height: var(--leading-tight); }
+.leading-normal { line-height: var(--leading-normal); }
+.leading-relaxed { line-height: var(--leading-relaxed); }
+
+/* Color utilities */
+.text-white { color: var(--color-text); }
+.text-muted { color: var(--color-text-muted); }
+.text-soft { color: var(--color-text-soft); }
+.text-brand { color: var(--brand-500); }
+.text-success { color: var(--emerald-500); }
+.text-warning { color: var(--amber-500); }
+.text-danger { color: var(--rose-500); }
+.text-info { color: var(--cyan-500); }
+
+/* Scrollbar */
+.scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar::-webkit-scrollbar-track { background: transparent; }
+.scrollbar::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+
+/* ============================================================
+   Ambient Background
+   ============================================================ */
+.ambient { position: fixed; pointer-events: none; z-index: 0; filter: blur(2px); }
+.ambient-a { width: 520px; height: 520px; inset-inline-end: -170px; top: -180px;
+  background: radial-gradient(circle, rgba(99,102,241,.18), transparent 68%); }
+.ambient-b { width: 500px; height: 500px; inset-inline-start: -180px; bottom: -190px;
+  background: radial-gradient(circle, rgba(139,92,246,.14), transparent 68%); }
+.ambient-c { width: 360px; height: 360px; inset-inline-start: 35%; top: 30%;
+  background: radial-gradient(circle, rgba(6,182,212,.07), transparent 70%); }
+html.light .ambient { opacity: .12; }
+
+/* ============================================================
+   Glass Effect
+   ============================================================ */
+.glass {
+  background: rgba(13,18,31,.78);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,.075);
+}
+html.light .glass {
+  background: rgba(255,255,255,.88);
+  border-color: var(--color-border);
+}
+
+.glass-soft {
+  background: rgba(20,27,45,.56);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.065);
+}
+html.light .glass-soft {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.card-pad { padding: var(--space-5); }
+@media (min-width: 640px) { .card-pad { padding: var(--space-6); } }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(.97) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
