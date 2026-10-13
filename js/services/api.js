@@ -1,6 +1,7 @@
 import {SUPABASE_URL,SUPABASE_KEY,BUCKET,MAX_PDF,STORAGE_LIMIT,STORAGE_GUARD} from '../config.js';
 import {state,byId} from '../lib/store.js';
 import {safeName} from '../lib/utils.js';
+import {monthRange} from '../lib/att.js';
 export const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
 const ok=({data,error})=>{if(error)throw error;return data};
 /* ---- تحميل ذكي: كل جدول يُحمّل فقط عند الحاجة (يوفر Egress وسجلات الـ API) ---- */
@@ -9,10 +10,29 @@ const dirty=new Set();
 export const touch=(...n)=>n.forEach(x=>dirty.add(x));
 const CASCADE={projects:['tasks','files','project_members','resources','activity_logs'],tasks:['files','activity_logs','resources'],files:['activity_logs']};
 export async function loadAll(full=false){
-  const names=full?Object.keys(Q):[...dirty];dirty.clear();if(!names.length)return;
+  const names=full?Object.keys(Q):[...dirty];dirty.clear();if(!names.length){await attTail();return}
   const rs=await Promise.all(names.map(n=>{const[tb,,ord,lim]=Q[n];let q=db.from(tb).select('*');if(ord)q=q.order('created_at',{ascending:false});if(lim)q=q.limit(lim);return q}));
-  names.forEach((n,i)=>state[Q[n][1]]=ok(rs[i]));state.loadedAt=Date.now();
+  names.forEach((n,i)=>state[Q[n][1]]=ok(rs[i]));state.loadedAt=Date.now();await attTail();
 }
+/* ---- الحضور: تحميل الشهر المطلوب فقط + وقت السيرفر ---- */
+let attDirty=false;export const touchAtt=()=>{attDirty=true};
+const attTail=async()=>{if(attDirty&&state.attReady){attDirty=false;await loadAtt(state.attMonth)}};
+export async function loadAtt(month,sync){
+  if(sync||state.srvOff===undefined){const t0=Date.now(),{data,error}=await db.rpc('att_now');if(error)throw error;state.srvOff=new Date(data)-(t0+Date.now())/2}
+  state.rules=ok(await db.from('attendance_rules').select('*').eq('id',1).maybeSingle())||{tz:'Africa/Cairo',late_threshold:5,early_threshold:5,greens_per_red:2};
+  if(!month)month=new Date(Date.now()+state.srvOff).toLocaleDateString('en-CA',{timeZone:state.rules.tz}).slice(0,7);
+  state.attMonth=month;const[from,to]=monthRange(month);
+  const lo=new Date(+new Date(from+'T00:00:00Z')-864e5).toISOString(),hi=new Date(+new Date(to+'T00:00:00Z')+864e5).toISOString();
+  const[sc,dy,se]=await Promise.all([db.from('work_schedules').select('*'),db.from('work_days').select('*').gte('work_date',from).lt('work_date',to).order('work_date',{ascending:false}),db.from('work_sessions').select('*').gte('started_at',lo).lt('started_at',hi).order('started_at',{ascending:false})]);
+  state.wsched=ok(sc);state.wdays=ok(dy);state.wsess=ok(se);state.attReady=true}
+export const att={
+  start:async()=>{touchAtt();const{data,error}=await db.rpc('att_start');if(error)throw error;return data},
+  stop:async(comment,close)=>{touchAtt();const{data,error}=await db.rpc('att_stop',{p_comment:comment||null,p_close:!!close});if(error)throw error;return data},
+  saveSchedule:async s=>{touchAtt();ok(await db.from('work_schedules').upsert(s,{onConflict:'user_id'}))},
+  delSchedule:async uid=>{touchAtt();ok(await db.from('work_schedules').delete().eq('user_id',uid))},
+  saveRules:async r=>{touchAtt();ok(await db.from('attendance_rules').update({...r,updated_at:new Date().toISOString()}).eq('id',1))},
+  setDay:async(id,patch)=>{touchAtt();ok(await db.from('work_days').update(patch).eq('id',id))},
+  delDay:async id=>{touchAtt();ok(await db.from('work_days').delete().eq('id',id))}};
 export const log=async(project_id,task_id,action,description)=>{touch('activity_logs');
   const{error}=await db.from('activity_logs').insert([{project_id:project_id||null,task_id:task_id||null,user_id:state.user.id,action,description:String(description||'').slice(0,240)}]);
   if(error)console.warn('activity log skipped:',error.message)};      // لا نكسر العملية بسبب السجل
@@ -49,13 +69,13 @@ export async function removeFile(id){const f=byId(state.files,id);await tbl('fil
 export async function delProject(id){const rows=state.files.filter(f=>f.project_id===id);await tbl('projects').del(id);await rmObjects(rows)}
 export async function delTask(id){const rows=state.files.filter(f=>f.task_id===id);await tbl('tasks').del(id);await rmObjects(rows)}
 /* ---- Realtime: نطبّق التغيير مباشرة على الحالة بدون أي إعادة جلب ---- */
-const MAP={projects:'projects',tasks:'tasks',profiles:'team',project_members:'members',files:'files',resources:'resources',activity_logs:'activity'};
-const same=(t,a,b)=>t==='project_members'?a.project_id===b.project_id&&a.user_id===b.user_id:a.id===b.id;
+const MAP={work_days:'wdays',work_sessions:'wsess',work_schedules:'wsched',projects:'projects',tasks:'tasks',profiles:'team',project_members:'members',files:'files',resources:'resources',activity_logs:'activity'};
+const same=(t,a,b)=>t==='project_members'?a.project_id===b.project_id&&a.user_id===b.user_id:t==='work_schedules'?a.user_id===b.user_id:a.id===b.id;
 export function live(onChange){
   let ch=db.channel('hub');
   Object.entries(MAP).forEach(([table,key])=>{ch=ch.on('postgres_changes',{event:'*',schema:'public',table},p=>{
-    const arr=state[key],n=p.new,o=p.old;
-    if(p.eventType==='DELETE'){const hit=table==='project_members'?(o.project_id&&o.user_id):o.id;
+    const arr=state[key]||(state[key]=[]),n=p.new,o=p.old;
+    if(p.eventType==='DELETE'){const hit=table==='project_members'?(o.project_id&&o.user_id):table==='work_schedules'?o.user_id:o.id;
       if(!hit){touch(table);return onChange(true)}state[key]=arr.filter(x=>!same(table,x,o))}
     else{const i=arr.findIndex(x=>same(table,x,n));if(i>=0)arr[i]=n;else arr.unshift(n);if(key==='activity'&&arr.length>150)arr.length=150}
     onChange(false)})});

@@ -16,7 +16,7 @@ export function form({title,fields,init={},submit='حفظ',onSubmit}){
     if(x.t==='select')c=`<select ${a}>${x.o.map(([val,l])=>`<option value="${esc(val)}" ${String(v)===String(val)?'selected':''}>${esc(t(l))}</option>`).join('')}</select>`;
     else if(x.t==='textarea')c=`<textarea ${a} rows="3" placeholder="${esc(t(x.ph||''))}">${esc(v)}</textarea>`;
     else if(x.t==='checks')c=`<div class="checks">${x.o.map(([val,l])=>`<label class="chk"><input type="checkbox" name="f-${x.k}" value="${esc(val)}" ${(init[x.k]||[]).includes(val)?'checked':''}>${esc(l)}</label>`).join('')||'<small>—</small>'}</div>`;
-    else c=`<input ${a} type="${x.t||'text'}" value="${x.t==='file'||x.t==='password'?'':esc(v)}" ${x.acc?`accept="${x.acc}"`:''} ${x.multi?'multiple':''} ${x.t==='number'?'min="0" max="100"':''} ${x.min?`minlength="${x.min}"`:''}>`;
+    else c=`<input ${a} type="${x.t||'text'}" value="${x.t==='file'||x.t==='password'?'':esc(v)}" ${x.acc?`accept="${x.acc}"`:''} ${x.multi?'multiple':''} ${x.t==='number'?`min="${x.mn??0}" max="${x.mx??100}" step="${x.step??1}"`:''} ${x.min?`minlength="${x.min}"`:''}>`;
     return `<label>${esc(t(x.l))}${c}</label>`};
   openModal(head(title)+`<form id="mf">${fields.map(f).join('')}<button class="btn primary block">${esc(t(submit))}</button></form>`);
   $('#mf').onsubmit=async e=>{e.preventDefault();const v={};
