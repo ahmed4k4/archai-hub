@@ -2,7 +2,7 @@ import {state,isAdmin,byId} from './lib/store.js';
 import {$,debounce} from './lib/utils.js';
 import {t,L,setLang} from './lib/i18n.js';
 import {auth,db,loadAll,loadAtt,live,unlive} from './services/api.js';
-import {sched,startTicker} from './lib/att.js';
+import {sched,startTicker,hooks} from './lib/att.js';
 import {STALE_MS} from './config.js';
 import {toast,closeModal,run,app} from './ui/ui.js';
 import * as dash from './views/dashboard.js';
@@ -68,6 +68,7 @@ $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus()}});
 $('#theme-btn').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('archai-theme',n)};
 $('#lang-btn').onclick=()=>{setLang(L.lang==='ar'?'en':'ar');state.profile&&($('#u-role').textContent=t(isAdmin()?'مدير':'موظف'));render()};
-startTicker();setInterval(()=>{if(state.user&&!busy()&&['attendance','dashboard'].includes(route().v))render()},60000);   // تحديث نصوص العدّ التنازلي كل دقيقة بدون أي طلب شبكة
+hooks.sweep=async()=>{if(!state.attReady||Date.now()-(state.sweepAt||0)<30000)return;state.sweepAt=Date.now();try{await loadAtt(state.attMonth,true);render()}catch(e){console.warn(e)}};   // عدّاد انتهى وقته → إغلاق تلقائي وتحديث الشاشة
+startTicker();setInterval(()=>{if(state.user&&state.attReady&&isAdmin()&&!document.hidden)hooks.sweep()},600000);setInterval(()=>{if(state.user&&!busy()&&['attendance','dashboard'].includes(route().v))render()},60000);   // تحديث نصوص العدّ التنازلي كل دقيقة بدون أي طلب شبكة
 document.documentElement.dataset.theme=localStorage.getItem('archai-theme')||'dark';setLang(L.lang);
 (async()=>{try{const{session}=await auth.session();session?await start(session):show('auth')}catch(e){console.warn(e);try{await auth.logout()}catch{}show('auth')}})();   // توكن قديم => ننظفه بدل تكرار طلبات 400

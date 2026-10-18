@@ -1,41 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl" data-theme="dark">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Archai Integrated Systems</title>
-<link rel="icon" type="image/png" href="assets/logo.webp">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="css/app.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<div id="boot" class="boot"><div class="spinner"></div></div>
-<script>setTimeout(function(){if(!window.__booted){var b=document.getElementById('boot');if(b)b.innerHTML='<p style="padding:24px;text-align:center;line-height:2">تعذر تشغيل النظام.<br>افتح المشروع عبر خادم محلي (<code>npx serve .</code>) ولا تفتح الملف مباشرة، وتأكد من اتصال الإنترنت.</p>'}},5000)</script>
-<div id="toasts"></div>
-<main id="auth" class="auth" hidden>
-  <form id="login-form" class="card auth-card" action="javascript:void(0)" onsubmit="return false">
-    <img class="auth-logo" src="assets/logo.webp" alt="Archai Integrated Systems" width="510" height="570">
-    <div class="auth-body"><p class="muted">منظومة إدارة المشاريع وفريق العمل</p>
-    <label>البريد الإلكتروني<input id="email" type="email" required autocomplete="username"></label>
-    <label>كلمة المرور<input id="password" type="password" required autocomplete="current-password"></label>
-    <button class="btn primary" id="login-btn">دخول إلى النظام</button>
-    <p id="login-error" class="error" hidden></p></div>
-  </form>
-</main>
-<div id="shell" class="shell" hidden>
-  <aside class="side">
-    <div class="brand"><img src="assets/logo.webp" alt="Archai" width="46" height="46"><span><b>ARCHAI</b><small>Integrated Systems</small></span></div>
-    <nav id="nav"></nav>
-    <div class="user"><span id="u-avatar" class="avatar"></span><div><b id="u-name"></b><small id="u-role"></small></div>
-      <button class="icon" id="lang-btn" title="Language">EN</button>
-      <button class="icon" id="theme-btn" title="المظهر"><i class="fa-solid fa-circle-half-stroke"></i></button>
-      <button class="icon" id="logout-btn" title="خروج"><i class="fa-solid fa-power-off"></i></button></div>
-  </aside>
-  <section class="content"><header class="top"><h2 id="title"></h2>
-    <input id="search" class="search" placeholder="بحث..." aria-label="search"><button class="btn" id="refresh"><i class="fa-solid fa-rotate"></i></button></header>
-    <div id="view" class="view"></div></section>
-</div>
-<div id="modal" class="modal" hidden><div class="card modal-box" id="modal-box"></div></div>
-<script type="module" src="js/main.js"></script>
-</body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Archai Integrated Systems</title>
+    <link rel="icon" type="image/png" href="assets/logo.webp" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Cairo:wght@400;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/app.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <div id="boot" class="boot"><div class="spinner"></div></div>
+    <script>
+      setTimeout(function () {
+        if (!window.__booted) {
+          var b = document.getElementById("boot");
+          if (b)
+            b.innerHTML =
+              '<p style="padding:24px;text-align:center;line-height:2">تعذر تشغيل النظام.<br>افتح المشروع عبر خادم محلي (<code>npx serve .</code>) ولا تفتح الملف مباشرة، وتأكد من اتصال الإنترنت.</p>';
+        }
+      }, 5000);
+    </script>
+    <div id="toasts"></div>
+    <main id="auth" class="auth" hidden>
+      <form
+        id="login-form"
+        class="card auth-card"
+        action="javascript:void(0)"
+        onsubmit="return false;"
+      >
+        <img
+          class="auth-logo"
+          src="assets/logo.webp"
+          alt="Archai Integrated Systems"
+          width="510"
+          height="570"
+        />
+        <div class="auth-body">
+          <p class="muted">منظومة إدارة المشاريع وفريق العمل</p>
+          <label
+            >البريد الإلكتروني<input
+              id="email"
+              type="email"
+              required
+              autocomplete="username"
+          /></label>
+          <label
+            >كلمة المرور<input
+              id="password"
+              type="password"
+              required
+              autocomplete="current-password"
+          /></label>
+          <button class="btn primary" id="login-btn">دخول إلى النظام</button>
+          <p id="login-error" class="error" hidden></p>
+        </div>
+      </form>
+    </main>
+    <div id="shell" class="shell" hidden>
+      <aside class="side">
+        <div class="brand">
+          <img
+            src="assets/logo.webp"
+            alt="Archai"
+            width="46"
+            height="46"
+          /><span><b>ARCHAI</b><small>Integrated Systems</small></span>
+        </div>
+        <nav id="nav"></nav>
+        <div class="user">
+          <span id="u-avatar" class="avatar"></span>
+          <div><b id="u-name"></b><small id="u-role"></small></div>
+          <button class="icon" id="lang-btn" title="Language">EN</button>
+          <button class="icon" id="theme-btn" title="المظهر">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+          </button>
+          <button class="icon" id="logout-btn" title="خروج">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </aside>
+      <section class="content">
+        <header class="top">
+          <h2 id="title"></h2>
+          <input
+            id="search"
+            class="search"
+            placeholder="بحث..."
+            aria-label="search"
+          /><button class="btn" id="refresh">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+        </header>
+        <div id="view" class="view"></div>
+      </section>
+    </div>
+    <div id="modal" class="modal" hidden>
+      <div class="card modal-box" id="modal-box"></div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

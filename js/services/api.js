@@ -18,21 +18,30 @@ export async function loadAll(full=false){
 let attDirty=false;export const touchAtt=()=>{attDirty=true};
 const attTail=async()=>{if(attDirty&&state.attReady){attDirty=false;await loadAtt(state.attMonth)}};
 export async function loadAtt(month,sync){
-  if(sync||state.srvOff===undefined){const t0=Date.now(),{data,error}=await db.rpc('att_now');if(error)throw error;state.srvOff=new Date(data)-(t0+Date.now())/2}
-  state.rules=ok(await db.from('attendance_rules').select('*').eq('id',1).maybeSingle())||{tz:'Africa/Cairo',late_threshold:5,early_threshold:5,greens_per_red:2};
-  if(!month)month=new Date(Date.now()+state.srvOff).toLocaleDateString('en-CA',{timeZone:state.rules.tz}).slice(0,7);
-  state.attMonth=month;const[from,to]=monthRange(month);
-  const lo=new Date(+new Date(from+'T00:00:00Z')-864e5).toISOString(),hi=new Date(+new Date(to+'T00:00:00Z')+864e5).toISOString();
-  const[sc,dy,se]=await Promise.all([db.from('work_schedules').select('*'),db.from('work_days').select('*').gte('work_date',from).lt('work_date',to).order('work_date',{ascending:false}),db.from('work_sessions').select('*').gte('started_at',lo).lt('started_at',hi).order('started_at',{ascending:false})]);
-  state.wsched=ok(sc);state.wdays=ok(dy);state.wsess=ok(se);state.attReady=true}
+  if(sync||state.srvOff===undefined){const t0=Date.now(),{data,error}=await db.rpc('att_now');if(error)throw error;state.srvOff=new Date(data)-(t0+Date.now())/2;
+    if(sync)await db.rpc('att_sweep')}                       // الإغلاق التلقائي (منتصف الليل/نهاية الدوام/الغياب) — فشله لا يوقف التحميل
+  state.rules=ok(await db.from('attendance_rules').select('*').eq('id',1).maybeSingle())||{tz:'Africa/Cairo',late_threshold:5,early_threshold:5,greens_per_red:2,fixed_grace_minutes:120,early_window_minutes:120,absent_is_red:true};
+  const nowL=off=>new Date(Date.now()+state.srvOff+off).toLocaleDateString('en-CA',{timeZone:state.rules.tz}),curM=nowL(0).slice(0,7);
+  if(!month)month=curM;state.attMonth=month;const[from,to]=monthRange(month),day=864e5;
+  const lo=new Date(+new Date(from+'T00:00:00Z')-day).toISOString(),hi=new Date(+new Date(to+'T00:00:00Z')+day).toISOString();
+  const q=[db.from('work_schedules').select('*'),db.from('work_days').select('*').gte('work_date',from).lt('work_date',to).order('work_date',{ascending:false}),db.from('work_sessions').select('*').gte('started_at',lo).lt('started_at',hi).order('started_at',{ascending:false}),db.from('attendance_holidays').select('*')];
+  if(month!==curM)q.push(db.from('work_days').select('*').gte('work_date',nowL(-2*day)),db.from('work_sessions').select('*').gte('started_at',new Date(Date.now()-3*day).toISOString()));   // اليوم الحالي يبقى متاحًا حتى لو تصفحت شهرًا قديمًا
+  const r=await Promise.all(q),mg=(a,b)=>b?[...a,...b.filter(x=>!a.some(y=>y.id===x.id))]:a;
+  state.wsched=ok(r[0]);state.wdays=mg(ok(r[1]),r[4]&&ok(r[4]));state.wsess=mg(ok(r[2]),r[5]&&ok(r[5]));state.wholi=r[3].error?[]:r[3].data;state.attReady=true}
+const rpc=async(fn,args)=>{touchAtt();const{data,error}=await db.rpc(fn,args);if(error)throw error;return data};
 export const att={
-  start:async()=>{touchAtt();const{data,error}=await db.rpc('att_start');if(error)throw error;return data},
-  stop:async(comment,close)=>{touchAtt();const{data,error}=await db.rpc('att_stop',{p_comment:comment||null,p_close:!!close});if(error)throw error;return data},
+  start:()=>rpc('att_start'),stop:(c,close)=>rpc('att_stop',{p_comment:c||null,p_close:!!close}),
+  adminStop:(uid,c,close)=>rpc('att_admin_stop',{p_user:uid,p_comment:c||null,p_close:!!close}),
+  addSession:(day,s,e,c)=>rpc('att_admin_add_session',{p_day:day,p_start:s,p_end:e,p_comment:c||null}),
+  editSession:(id,s,e,c)=>rpc('att_admin_edit_session',{p_session:id,p_start:s,p_end:e||null,p_comment:c||null}),
+  delSession:id=>rpc('att_admin_delete_session',{p_session:id}),recalc:id=>rpc('att_admin_recalc',{p_day:id}),reopen:id=>rpc('att_admin_reopen',{p_day:id}),
   saveSchedule:async s=>{touchAtt();ok(await db.from('work_schedules').upsert(s,{onConflict:'user_id'}))},
   delSchedule:async uid=>{touchAtt();ok(await db.from('work_schedules').delete().eq('user_id',uid))},
   saveRules:async r=>{touchAtt();ok(await db.from('attendance_rules').update({...r,updated_at:new Date().toISOString()}).eq('id',1))},
   setDay:async(id,patch)=>{touchAtt();ok(await db.from('work_days').update(patch).eq('id',id))},
-  delDay:async id=>{touchAtt();ok(await db.from('work_days').delete().eq('id',id))}};
+  delDay:async id=>{touchAtt();ok(await db.from('work_days').delete().eq('id',id))},
+  addHoliday:async(day,note)=>{touchAtt();ok(await db.from('attendance_holidays').upsert({day,note:note||null},{onConflict:'day'}))},
+  delHoliday:async day=>{touchAtt();ok(await db.from('attendance_holidays').delete().eq('day',day))}};
 export const log=async(project_id,task_id,action,description)=>{touch('activity_logs');
   const{error}=await db.from('activity_logs').insert([{project_id:project_id||null,task_id:task_id||null,user_id:state.user.id,action,description:String(description||'').slice(0,240)}]);
   if(error)console.warn('activity log skipped:',error.message)};      // لا نكسر العملية بسبب السجل
